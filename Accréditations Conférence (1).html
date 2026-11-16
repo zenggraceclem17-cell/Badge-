@@ -1,0 +1,474 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Accréditations Conférence</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+  /* Layout: chiffres en tête, puis import et contrôle à l'entrée côte à côte, paramètres, liste des inscrits. */
+  :root {
+    --bg: #edf0ee;
+    --surface: #ffffff;
+    --fg: #11211f;
+    --muted: #586966;
+    --line: #cbd5d2;
+    --accent: #0b6e5b;
+    --accent-fg: #ffffff;
+    --ok: #1a7f4b;
+    --warn: #9a5b00;
+    --err: #b3261e;
+    --display: "Space Grotesk", system-ui, sans-serif;
+    --body: "Inter", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d1715; --surface: #14221f; --fg: #e7efec; --muted: #93a6a1;
+      --line: #274039; --accent: #3fbf9f; --accent-fg: #06211b;
+      --ok: #5fd49a; --warn: #f0b45a; --err: #ff8a80;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1715; --surface: #14221f; --fg: #e7efec; --muted: #93a6a1;
+    --line: #274039; --accent: #3fbf9f; --accent-fg: #06211b;
+    --ok: #5fd49a; --warn: #f0b45a; --err: #ff8a80;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5;
+    padding-block: 32px 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  [hidden] { display: none !important; }
+  .wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; margin: 0 0 8px; text-wrap: balance; }
+  .lead { margin: 0; color: var(--muted); max-width: 62ch; }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; min-width: 0; }
+  .panel h2 { font-family: var(--display); font-size: 18px; margin: 0 0 8px; }
+  .hint { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
+  .stack { display: flex; flex-direction: column; gap: 16px; }
+  .org-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start; }
+  @media (max-width: 820px) { .org-grid { grid-template-columns: minmax(0, 1fr); } }
+  .row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 520px) { .row2 { grid-template-columns: minmax(0, 1fr); } }
+  .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  label { font-size: 13px; font-weight: 600; }
+  input[type="text"], input[type="search"], input[type="url"] {
+    width: 100%; font: inherit; color: var(--fg); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 11px 13px;
+  }
+  textarea { width: 100%; font-family: var(--mono); font-size: 12px; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; min-height: 110px; resize: vertical; }
+  input::placeholder, textarea::placeholder { color: var(--muted); opacity: .7; }
+  input:focus-visible, button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .btns { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  button, a.btn {
+    font: inherit; font-weight: 600; border-radius: 8px; padding: 12px 18px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface); color: var(--fg);
+    text-decoration: none; display: inline-block; line-height: 1.3;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  .sm { padding: 7px 12px; font-size: 13px; }
+  button:hover, a.btn:hover { filter: brightness(1.06); }
+  .status { min-height: 20px; margin: 0; font-size: 13px; color: var(--accent); font-weight: 600; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .stat b { display: block; font-family: var(--display); font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 13px; }
+
+  .banner { padding: 12px 14px; border-radius: 8px; border: 1px solid var(--line); font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+  .banner.ok { border-color: var(--ok); color: var(--ok); }
+  .banner.warn { border-color: var(--warn); color: var(--warn); }
+  .banner.bad { border-color: var(--err); color: var(--err); }
+
+  .listhead { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .listhead input { max-width: 320px; }
+  .reg { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; padding: 14px 0; border-top: 1px solid var(--line); align-items: center; }
+  @media (max-width: 640px) { .reg { grid-template-columns: minmax(0, 1fr); } }
+  .reg .name { font-weight: 600; overflow-wrap: anywhere; }
+  .reg .meta { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+  .reg .code { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .chip { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+  .chip.ok { color: var(--ok); border-color: var(--ok); }
+  .chip.sent { color: var(--accent); border-color: var(--accent); }
+  button.danger { color: var(--err); border-color: var(--err); }
+  button.danger.solid { background: var(--err); color: var(--surface); }
+  .confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .confirm span { font-size: 13px; font-weight: 600; color: var(--err); }
+  .empty { color: var(--muted); padding: 18px 0 4px; margin: 0; }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Organisation</p>
+    <h1>Accréditations de la conférence</h1>
+    <p class="lead">Importez les codes d'inscription reçus des invités, contrôlez les entrées, renvoyez à chacun son numéro de badge et supprimez les inscriptions en trop.</p>
+  </header>
+
+  <div class="panel" id="gate">
+    <h2>Chargement…</h2>
+    <p class="hint" id="gate-msg">Vérification de votre accès.</p>
+  </div>
+
+  <div id="app" class="stack" hidden>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><b id="st-reg">0</b><span>Inscrits</span></div>
+      <div class="stat"><b id="st-pres">0</b><span>Entrés</span></div>
+      <div class="stat"><b id="st-sent">0</b><span>Numéros envoyés</span></div>
+    </div>
+
+    <div class="org-grid">
+      <section class="panel" aria-labelledby="h-imp">
+        <h2 id="h-imp">Importer des inscriptions</h2>
+        <p class="hint">Collez un ou plusieurs codes d'inscription reçus (WhatsApp, e-mail). Vous pouvez coller toute une conversation : seuls les codes sont lus.</p>
+        <div class="stack">
+          <textarea id="imp" placeholder="INS1.eyJuIjoi…" aria-label="Codes d'inscription"></textarea>
+          <div class="btns"><button type="button" class="primary" id="btn-imp">Importer</button></div>
+          <div id="imp-result" class="banner" role="status" hidden></div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-ci">
+        <h2 id="h-ci">Contrôle à l'entrée</h2>
+        <p class="hint">Saisissez le numéro du badge, ou collez le texte lu par le scan du code QR.</p>
+        <div class="stack">
+          <div class="field">
+            <label for="ci-code">Numéro de badge</label>
+            <input id="ci-code" type="text" autocomplete="off" autocapitalize="characters" placeholder="BDG-A7K-92M">
+          </div>
+          <div class="btns"><button type="button" class="primary" id="btn-ci">Valider l'entrée</button></div>
+          <div id="ci-result" class="banner" role="status" hidden></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel" aria-labelledby="h-cfg">
+      <h2 id="h-cfg">Messages aux invités</h2>
+      <p class="hint">Ces informations figurent dans les messages WhatsApp et e-mail envoyés depuis la liste.</p>
+      <div class="stack">
+        <div class="row2">
+          <div class="field"><label for="cf-name">Nom de la conférence</label><input id="cf-name" type="text"></div>
+          <div class="field"><label for="cf-link">Lien de la page invité</label><input id="cf-link" type="url" placeholder="https://"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="cf-date">Date</label><input id="cf-date" type="text" placeholder="12 décembre 2026"></div>
+          <div class="field"><label for="cf-place">Lieu</label><input id="cf-place" type="text" placeholder="Kinshasa"></div>
+        </div>
+        <div class="field" style="max-width:240px"><label for="cf-cc">Indicatif pays par défaut</label><input id="cf-cc" type="text" inputmode="numeric" placeholder="243"></div>
+        <div class="btns"><button type="button" class="primary" id="btn-cfg">Enregistrer</button><span class="status" id="cfg-status"></span></div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="h-list">
+      <div class="listhead">
+        <h2 id="h-list" style="margin:0">Inscriptions</h2>
+        <div class="btns">
+          <input id="q" type="search" placeholder="Rechercher un nom, e-mail, numéro" aria-label="Rechercher une inscription">
+          <button type="button" class="sm" id="btn-csv">Exporter en CSV</button>
+        </div>
+      </div>
+      <p class="status" id="org-status" aria-live="polite"></p>
+      <div id="list"></div>
+    </section>
+
+    <section class="panel" id="fb" hidden>
+      <h2>Message à copier</h2>
+      <p class="hint">La copie automatique est refusée ici. Sélectionnez le texte puis copiez-le.</p>
+      <textarea id="fb-text" readonly></textarea>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var DEFAULT_CFG = { name: "Conférence 2026", date: "", place: "", cc: "243", link: "" };
+  var cfg = Object.assign({}, DEFAULT_CFG);
+  var db = null, dl = null;
+  var regs = new Map(), pres = new Map(), sent = new Map();
+  var loaded = false;
+  var pendingDel = null;
+
+  function strip(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+  function makeId(seed) {
+    var h = 2166136261;
+    for (var i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+    h = h >>> 0;
+    var alpha = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", s = "";
+    for (var j = 0; j < 6; j++) { s += alpha[h % 32]; h = Math.floor(h / 32); }
+    return "BDG-" + s.slice(0, 3) + "-" + s.slice(3);
+  }
+  function decodeCode(c) {
+    var b = c.slice(5).replace(/-/g, "+").replace(/_/g, "/");
+    while (b.length % 4) b += "=";
+    return JSON.parse(decodeURIComponent(escape(atob(b))));
+  }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function hhmm(iso) {
+    try { return new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }); } catch (e) { return ""; }
+  }
+  function banner(id, kind, text) {
+    var b = $(id); b.hidden = false; b.className = "banner " + kind; b.textContent = text;
+  }
+
+  /* ---------- messages d'envoi ---------- */
+  function buildMsg(prenom, badge) {
+    var lines = ["Bonjour " + prenom + ",", "", "Votre inscription à " + (cfg.name || "la conférence") + " est confirmée.", "Numéro de badge : " + badge];
+    var meta = [cfg.date, cfg.place].filter(Boolean).join(" · ");
+    if (meta) lines.push(meta);
+    lines.push("", "Présentez votre badge (code QR) ou ce numéro à l'entrée.");
+    if (cfg.link) lines.push("", "Retrouvez votre badge : " + cfg.link);
+    return lines.join("\n");
+  }
+  function waLink(tel, text) {
+    var raw = (tel || "").trim();
+    var digits = raw.replace(/\D/g, "");
+    var cc = (cfg.cc || "").replace(/\D/g, "");
+    if (raw.charAt(0) === "+") { /* déjà international */ }
+    else if (digits.indexOf("00") === 0) digits = digits.slice(2);
+    else if (digits.charAt(0) === "0" && cc) digits = cc + digits.slice(1);
+    return "https://wa.me/" + digits + "?text=" + encodeURIComponent(text);
+  }
+  function mailLink(email, text) {
+    return "mailto:" + email + "?subject=" + encodeURIComponent("Votre badge · " + (cfg.name || "Conférence")) + "&body=" + encodeURIComponent(text);
+  }
+  function copyText(text, done) {
+    function fallback() {
+      $("fb-text").value = text; $("fb").hidden = false;
+      $("fb-text").focus(); $("fb-text").select();
+      $("fb").scrollIntoView({ block: "nearest" });
+      done("Sélectionnez le texte ci-dessous pour le copier.");
+    }
+    try { navigator.clipboard.writeText(text).then(function () { done("Message copié."); }, fallback); }
+    catch (e) { fallback(); }
+  }
+
+  /* ---------- import ---------- */
+  $("btn-imp").addEventListener("click", function () {
+    var text = $("imp").value;
+    var codes = Array.from(new Set(text.match(/INS1\.[A-Za-z0-9_-]+/g) || []));
+    if (!codes.length) { banner("imp-result", "warn", "Aucun code d'inscription trouvé dans ce texte."); return; }
+    var good = [], bad = 0;
+    codes.forEach(function (c) {
+      try {
+        var d = decodeCode(c);
+        var r = { nom: String(d.n || ""), postnom: String(d.p || ""), prenom: String(d.r || ""), email: String(d.e || ""), tel: String(d.t || ""), badge: String(d.i || "") };
+        var okFields = r.nom.length >= 2 && r.postnom.length >= 2 && r.prenom.length >= 2 && r.nom.length < 80 && r.postnom.length < 80 && r.prenom.length < 80 &&
+          /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(r.email) && r.tel.replace(/\D/g, "").length >= 8;
+        if (okFields && r.badge === makeId(r.email.toLowerCase() + "|" + r.tel.replace(/\D/g, ""))) good.push(r); else bad++;
+      } catch (e) { bad++; }
+    });
+    var fresh = good.filter(function (r) { return !regs.has(r.badge); });
+    var already = good.length - fresh.length;
+    banner("imp-result", "warn", "Import en cours…");
+    var now = new Date().toISOString(), failed = 0;
+    var chain = Promise.resolve();
+    fresh.forEach(function (r) {
+      chain = chain.then(function () {
+        return db.doc("inscriptions/" + r.badge).set(Object.assign({}, r, { createdAt: now })).catch(function () { failed++; });
+      });
+    });
+    chain.then(function () {
+      var added = fresh.length - failed;
+      var msg = added + " nouvelle(s) inscription(s)";
+      if (already) msg += ", " + already + " déjà présente(s)";
+      if (bad) msg += ", " + bad + " code(s) invalide(s)";
+      if (failed) msg += ", " + failed + " non enregistrée(s)";
+      banner("imp-result", failed || bad ? "warn" : "ok", msg + ".");
+      if (added) $("imp").value = "";
+    });
+  });
+
+  /* ---------- entrée ---------- */
+  function checkIn() {
+    var id = $("ci-code").value.trim().toUpperCase().split("|")[0].trim();
+    if (!id) { banner("ci-result", "warn", "Saisissez un numéro de badge."); return; }
+    var r = regs.get(id);
+    if (!r) { banner("ci-result", "bad", "Badge inconnu : " + id + ". Entrée refusée."); return; }
+    var who = r.prenom + " " + r.nom + " " + r.postnom;
+    var p = pres.get(id);
+    if (p) { banner("ci-result", "warn", who + " est déjà entré(e) à " + hhmm(p.at) + "."); return; }
+    db.doc("presences/" + id).set({ at: new Date().toISOString() }).then(function () {
+      banner("ci-result", "ok", "Badge valide : " + who + ". Entrée enregistrée.");
+      $("ci-code").value = ""; $("ci-code").focus();
+    }, function () { banner("ci-result", "bad", "L'entrée n'a pas pu être enregistrée. Réessayez."); });
+  }
+  $("btn-ci").addEventListener("click", checkIn);
+  $("ci-code").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); checkIn(); } });
+
+  /* ---------- paramètres ---------- */
+  function fillCfgInputs() {
+    $("cf-name").value = cfg.name || ""; $("cf-date").value = cfg.date || ""; $("cf-place").value = cfg.place || "";
+    $("cf-cc").value = cfg.cc || ""; $("cf-link").value = cfg.link || "";
+  }
+  $("btn-cfg").addEventListener("click", function () {
+    var next = {
+      name: $("cf-name").value.trim(), date: $("cf-date").value.trim(), place: $("cf-place").value.trim(),
+      cc: $("cf-cc").value.replace(/\D/g, ""), link: $("cf-link").value.trim()
+    };
+    if (!next.name) { $("cfg-status").textContent = "Saisissez le nom de la conférence."; return; }
+    $("cfg-status").textContent = "Enregistrement…";
+    db.doc("config/event").set(next).then(function () {
+      cfg = Object.assign({}, DEFAULT_CFG, next);
+      $("cfg-status").textContent = "Paramètres enregistrés.";
+      renderList();
+    }, function () { $("cfg-status").textContent = "Enregistrement impossible avec ce compte."; });
+  });
+
+  /* ---------- liste ---------- */
+  function markSent(id, canal) { db.doc("envois/" + id).set({ canal: canal, at: new Date().toISOString() }).catch(function () {}); }
+  function togglePresence(id) {
+    if (pres.has(id)) db.doc("presences/" + id).delete().catch(function () {});
+    else db.doc("presences/" + id).set({ at: new Date().toISOString() }).catch(function () {});
+  }
+
+  function removeReg(id) {
+    $("org-status").textContent = "Suppression en cours…";
+    db.doc("inscriptions/" + id).delete().then(function () {
+      db.doc("presences/" + id).delete().catch(function () {});
+      db.doc("envois/" + id).delete().catch(function () {});
+      pendingDel = null;
+      $("org-status").textContent = "Inscription supprimée.";
+    }, function () {
+      pendingDel = null;
+      $("org-status").textContent = "La suppression a échoué. Réessayez.";
+      renderList();
+    });
+  }
+
+  function renderList() {
+    $("st-reg").textContent = regs.size;
+    var pc = 0, sc = 0;
+    regs.forEach(function (r, id) { if (pres.has(id)) pc++; if (sent.has(id)) sc++; });
+    $("st-pres").textContent = pc; $("st-sent").textContent = sc;
+
+    var q = strip($("q").value.trim().toLowerCase());
+    var rows = Array.from(regs.values()).filter(function (r) {
+      return !q || strip([r.nom, r.postnom, r.prenom, r.email, r.tel, r.badge].join(" ").toLowerCase()).indexOf(q) !== -1;
+    }).sort(function (a, b) { return (b.createdAt || "").localeCompare(a.createdAt || ""); });
+
+    var list = $("list"); list.textContent = "";
+    if (!rows.length) {
+      list.appendChild(el("p", "empty", regs.size ? "Aucun résultat pour cette recherche." : "Aucune inscription pour l'instant. Importez les codes reçus des invités."));
+      return;
+    }
+    rows.forEach(function (r) {
+      var id = r.badge, msg = buildMsg(r.prenom, id);
+      var row = el("div", "reg");
+      var who = el("div");
+      who.appendChild(el("div", "name", r.prenom + " " + r.nom + " " + r.postnom));
+      who.appendChild(el("div", "meta", r.email + " · " + r.tel));
+      who.appendChild(el("div", "code", id));
+      var chips = el("div", "chips");
+      if (pres.has(id)) chips.appendChild(el("span", "chip ok", "Entré à " + hhmm(pres.get(id).at)));
+      if (sent.has(id)) chips.appendChild(el("span", "chip sent", "Envoyé (" + (sent.get(id).canal === "email" ? "e-mail" : "WhatsApp") + ")"));
+      who.appendChild(chips);
+      row.appendChild(who);
+
+      var act = el("div", "btns");
+      var b1 = el("button", "sm", pres.has(id) ? "Annuler l'entrée" : "Pointer l'entrée");
+      b1.type = "button"; b1.addEventListener("click", function () { togglePresence(id); });
+      var wa = el("a", "btn sm", "WhatsApp");
+      wa.href = waLink(r.tel, msg); wa.target = "_blank"; wa.rel = "noopener";
+      wa.addEventListener("click", function () { markSent(id, "whatsapp"); });
+      var ml = el("a", "btn sm", "E-mail");
+      ml.href = mailLink(r.email, msg); ml.target = "_blank"; ml.rel = "noopener";
+      ml.addEventListener("click", function () { markSent(id, "email"); });
+      var cp = el("button", "sm", "Copier le message");
+      cp.type = "button";
+      cp.addEventListener("click", function () { copyText(msg, function (m) { $("org-status").textContent = m; }); });
+      act.appendChild(b1); act.appendChild(wa); act.appendChild(ml); act.appendChild(cp);
+      if (pendingDel === id) {
+        var cf = el("div", "confirm");
+        cf.appendChild(el("span", null, "Supprimer " + r.prenom + " et son badge ?"));
+        var yes = el("button", "sm danger solid", "Oui, supprimer");
+        yes.type = "button"; yes.addEventListener("click", function () { removeReg(id); });
+        var no = el("button", "sm", "Annuler");
+        no.type = "button"; no.addEventListener("click", function () { pendingDel = null; renderList(); });
+        cf.appendChild(yes); cf.appendChild(no);
+        act.appendChild(cf);
+      } else {
+        var del = el("button", "sm danger", "Supprimer");
+        del.type = "button"; del.addEventListener("click", function () { pendingDel = id; renderList(); });
+        act.appendChild(del);
+      }
+      row.appendChild(act);
+      list.appendChild(row);
+    });
+  }
+  $("q").addEventListener("input", renderList);
+
+  $("btn-csv").addEventListener("click", function () {
+    if (!dl) { $("org-status").textContent = "L'export n'est pas disponible dans cet affichage."; return; }
+    function esc(s) { s = String(s == null ? "" : s); return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+    var out = [["Nom", "Postnom", "Prénom", "E-mail", "Téléphone", "Badge", "Entré", "Envoyé"].join(",")];
+    regs.forEach(function (r, id) {
+      out.push([r.nom, r.postnom, r.prenom, r.email, r.tel, id, pres.has(id) ? hhmm(pres.get(id).at) : "", sent.has(id) ? sent.get(id).canal : ""].map(esc).join(","));
+    });
+    dl.save({ filename: "inscriptions.csv", data: "﻿" + out.join("\n") }).then(function () {
+      $("org-status").textContent = "Export enregistré.";
+    }, function (err) {
+      $("org-status").textContent = (err && err.code === "declined") ? "Export annulé." : "Export impossible ici.";
+    });
+  });
+
+  /* ---------- données en direct ---------- */
+  function subscribe() {
+    $("org-status").textContent = "Chargement des inscriptions…";
+    var timer = setTimeout(function () {
+      if (!loaded) $("org-status").textContent = "Les inscriptions ne répondent pas encore. Elles s'afficheront dès que possible.";
+    }, 10000);
+    db.collection("inscriptions").onSnapshot(function (snap) {
+      regs = new Map();
+      snap.docs.forEach(function (d) { var x = d.data(); if (x && x.badge) regs.set(x.badge, Object.assign({}, x)); });
+      loaded = true; clearTimeout(timer); $("org-status").textContent = "";
+      renderList();
+    }, function () { clearTimeout(timer); $("org-status").textContent = "Les inscriptions n'ont pas pu être chargées avec ce compte."; });
+    db.collection("presences").onSnapshot(function (snap) {
+      pres = new Map(); snap.docs.forEach(function (d) { pres.set(d.id, d.data()); }); renderList();
+    }, function () {});
+    db.collection("envois").onSnapshot(function (snap) {
+      sent = new Map(); snap.docs.forEach(function (d) { sent.set(d.id, d.data()); }); renderList();
+    }, function () {});
+    db.doc("config/event").get().then(function (s) {
+      if (s.exists) {
+        var d = s.data() || {};
+        cfg = Object.assign({}, DEFAULT_CFG, { name: d.name || DEFAULT_CFG.name, date: d.date || "", place: d.place || "", cc: d.cc || DEFAULT_CFG.cc, link: d.link || "" });
+      }
+      fillCfgInputs(); renderList();
+    }).catch(function () { fillCfgInputs(); });
+  }
+
+  function useCap(name) {
+    try { return window.claude && window.claude.use ? window.claude.use(name).catch(function () { return null; }) : Promise.resolve(null); }
+    catch (e) { return Promise.resolve(null); }
+  }
+  function gate(title, msg) { $("gate").hidden = false; $("app").hidden = true; $("gate").querySelector("h2").textContent = title; $("gate-msg").textContent = msg; }
+
+  Promise.all([useCap("user"), useCap("db"), useCap("downloads")]).then(function (res) {
+    var user = res[0]; db = res[1]; dl = res[2];
+    return (user ? user.canEdit() : Promise.resolve(false)).then(function (admin) {
+      if (!db) { gate("Page réservée à l'organisateur", "Ouvrez cette page depuis votre compte Claude pour gérer les inscriptions."); return; }
+      if (!admin) { gate("Page réservée à l'organisateur", "Votre accès ne permet pas de gérer les inscriptions."); return; }
+      $("gate").hidden = true; $("app").hidden = false;
+      fillCfgInputs();
+      subscribe();
+    });
+  });
+})();
+</script>
+
+</body></html>

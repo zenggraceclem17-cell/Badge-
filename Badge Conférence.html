@@ -1,0 +1,429 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Badge Conférence</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+  /* Layout: formulaire à gauche, badge et étape finale à droite (sticky). Une colonne sous 820px. */
+  :root {
+    --bg: #edf0ee;
+    --surface: #ffffff;
+    --fg: #11211f;
+    --muted: #586966;
+    --line: #cbd5d2;
+    --accent: #0b6e5b;
+    --accent-fg: #ffffff;
+    --warm: #9a5b00;
+    --err: #b3261e;
+    --display: "Space Grotesk", system-ui, sans-serif;
+    --body: "Inter", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d1715; --surface: #14221f; --fg: #e7efec; --muted: #93a6a1;
+      --line: #274039; --accent: #3fbf9f; --accent-fg: #06211b; --warm: #f0b45a; --err: #ff8a80;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1715; --surface: #14221f; --fg: #e7efec; --muted: #93a6a1;
+    --line: #274039; --accent: #3fbf9f; --accent-fg: #06211b; --warm: #f0b45a; --err: #ff8a80;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5;
+    padding-block: 32px 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  [hidden] { display: none !important; }
+  .wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; margin: 0 0 8px; text-wrap: balance; }
+  .lead { margin: 0; color: var(--muted); max-width: 60ch; }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 32px; align-items: start; }
+  @media (max-width: 820px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; min-width: 0; }
+  .panel h2 { font-family: var(--display); font-size: 18px; margin: 0 0 16px; }
+
+  form { display: flex; flex-direction: column; gap: 16px; }
+  .row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 520px) { .row2 { grid-template-columns: minmax(0, 1fr); } }
+  .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  label { font-size: 13px; font-weight: 600; }
+  input[type="text"], input[type="email"], input[type="tel"] {
+    width: 100%; font: inherit; color: var(--fg); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 11px 13px;
+  }
+  input::placeholder { color: var(--muted); opacity: .7; }
+  input:focus-visible, button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  input[aria-invalid="true"] { border-color: var(--err); }
+  .err { margin: 0; color: var(--err); font-size: 13px; }
+
+  .btns { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  button, a.btn {
+    font: inherit; font-weight: 600; border-radius: 8px; padding: 12px 18px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface); color: var(--fg);
+    text-decoration: none; display: inline-block; line-height: 1.3;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  .sm { padding: 8px 13px; font-size: 13px; }
+  button:hover, a.btn:hover { filter: brightness(1.06); }
+
+  .stage { position: sticky; top: 24px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  @media (max-width: 820px) { .stage { position: static; } }
+  .badge-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; justify-content: center; }
+  #badge-img { display: block; width: 100%; max-width: 320px; aspect-ratio: 2 / 3; height: auto; border-radius: 14px; box-shadow: 0 10px 30px rgba(15, 43, 40, .22); }
+  .caption { margin: 0; color: var(--muted); font-size: 13px; }
+  .caption strong { color: var(--fg); }
+  #badge-id { font-family: var(--mono); font-weight: 700; color: var(--accent); }
+  .status { min-height: 20px; margin: 0; font-size: 13px; color: var(--accent); font-weight: 600; }
+
+  .step { background: var(--surface); border: 1px solid var(--warm); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .step h3 { margin: 0; font-family: var(--display); font-size: 16px; color: var(--warm); }
+  .step p { margin: 0; font-size: 14px; }
+  textarea { width: 100%; font-family: var(--mono); font-size: 12px; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; min-height: 96px; resize: vertical; }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Accréditation</p>
+    <h1>Votre badge pour la conférence</h1>
+    <p class="lead">Renseignez vos informations pour obtenir votre badge d'accès avec un code QR et un numéro unique.</p>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="h-form">
+      <h2 id="h-form">Vos informations</h2>
+      <form id="form" novalidate>
+        <div class="row2">
+          <div class="field">
+            <label for="nom">Nom</label>
+            <input id="nom" type="text" autocomplete="family-name" placeholder="Mukendi" required>
+            <p class="err" id="err-nom" hidden></p>
+          </div>
+          <div class="field">
+            <label for="postnom">Postnom</label>
+            <input id="postnom" type="text" autocomplete="additional-name" placeholder="Kabeya" required>
+            <p class="err" id="err-postnom" hidden></p>
+          </div>
+        </div>
+        <div class="field">
+          <label for="prenom">Prénom</label>
+          <input id="prenom" type="text" autocomplete="given-name" placeholder="Patrick" required>
+          <p class="err" id="err-prenom" hidden></p>
+        </div>
+        <div class="field">
+          <label for="email">Adresse e-mail</label>
+          <input id="email" type="email" autocomplete="email" placeholder="patrick.mukendi@exemple.com" required>
+          <p class="err" id="err-email" hidden></p>
+        </div>
+        <div class="field">
+          <label for="tel">Numéro de téléphone</label>
+          <input id="tel" type="tel" autocomplete="tel" placeholder="+243 81 234 5678" required>
+          <p class="err" id="err-tel" hidden></p>
+        </div>
+        <div class="btns">
+          <button type="submit" class="primary" id="btn-generate">Générer mon badge</button>
+          <button type="button" id="btn-reset" hidden>Nouveau badge</button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="stage" aria-live="polite">
+      <div class="badge-frame">
+        <img id="badge-img" alt="Aperçu du badge" width="400" height="600">
+      </div>
+      <p class="status" id="status"></p>
+      <p class="caption" id="caption">Aperçu avec des données d'exemple.</p>
+      <div class="btns" id="actions" hidden>
+        <button type="button" id="btn-save" hidden>Enregistrer le badge (PNG)</button>
+        <button type="button" id="btn-copy">Copier le numéro</button>
+      </div>
+
+      <div class="step" id="step" hidden>
+        <h3>Dernière étape : confirmez votre inscription</h3>
+        <p>Envoyez le code ci-dessous à l'organisateur. Sans lui, votre badge ne sera pas reconnu à l'entrée.</p>
+        <textarea id="code" readonly aria-label="Votre code d'inscription"></textarea>
+        <div class="btns">
+          <button type="button" class="primary sm" id="btn-copycode">Copier le code</button>
+          <a class="btn sm" id="btn-wa" href="#" target="_blank" rel="noopener" hidden>Envoyer par WhatsApp</a>
+          <a class="btn sm" id="btn-mail" href="#" target="_blank" rel="noopener" hidden>Envoyer par e-mail</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* ---- À renseigner par l'organisateur (republier la page pour modifier) ---- */
+  var EVENT = { name: "Conférence 2026", date: "", place: "" };
+  var ORGANIZER = { whatsapp: "", email: "" };  // whatsapp : numéro international sans +, ex. "243812345678"
+
+  var $ = function (id) { return document.getElementById(id); };
+  var canvas = document.createElement("canvas");
+  var ctx = canvas.getContext("2d");
+  var DISPLAY = '"Space Grotesk", "Inter", sans-serif';
+  var BODY = '"Inter", system-ui, sans-serif';
+  var MONO = '"JetBrains Mono", ui-monospace, monospace';
+
+  var SAMPLE = {
+    nom: "Mukendi", postnom: "Kabeya", prenom: "Patrick",
+    email: "patrick.mukendi@exemple.com", tel: "+243 81 234 5678", id: "BDG-A7K-92M"
+  };
+  var current = null, dl = null;
+
+  function strip(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+  function makeId(seed) {
+    var h = 2166136261;
+    for (var i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+    h = h >>> 0;
+    var alpha = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", s = "";
+    for (var j = 0; j < 6; j++) { s += alpha[h % 32]; h = Math.floor(h / 32); }
+    return "BDG-" + s.slice(0, 3) + "-" + s.slice(3);
+  }
+  function encodeCode(v) {
+    var j = JSON.stringify({ n: v.nom, p: v.postnom, r: v.prenom, e: v.email, t: v.tel, i: v.id });
+    var b = btoa(unescape(encodeURIComponent(j))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    return "INS1." + b;
+  }
+  function ls(px) { if ("letterSpacing" in ctx) ctx.letterSpacing = px + "px"; }
+  function rr(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function fit(text, maxW, start, min, weight, family) {
+    var s = start;
+    ctx.font = weight + " " + s + "px " + family;
+    while (ctx.measureText(text).width > maxW && s > min) { s -= 1; ctx.font = weight + " " + s + "px " + family; }
+    var t = text;
+    while (ctx.measureText(t).width > maxW && t.length > 1) { t = t.slice(0, -1); }
+    return t === text ? t : t.replace(/\s+$/, "") + "…";
+  }
+  function wrap(text, maxW) {
+    var words = text.split(/\s+/), lines = [], cur = "";
+    words.forEach(function (w) {
+      var t = cur ? cur + " " + w : w;
+      if (ctx.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else { cur = t; }
+    });
+    lines.push(cur);
+    return lines;
+  }
+
+  function drawBadge(d, sample) {
+    var S = 2, W = 600, H = 900;
+    canvas.width = W * S; canvas.height = H * S;
+    ctx.setTransform(S, 0, 0, S, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+
+    ctx.save();
+    rr(0, 0, W, H, 28); ctx.clip();
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#0f2b28"; ctx.fillRect(0, 0, W, 260);
+    ctx.fillStyle = "#e8a33d"; ctx.fillRect(0, 260, W, 8);
+    ctx.fillStyle = "#edf0ee"; rr((W - 130) / 2, 26, 130, 24, 12); ctx.fill();
+
+    var evName = (EVENT.name || "").trim() || "Conférence";
+    ctx.fillStyle = "#9fc7bd"; ctx.font = "600 14px " + BODY; ls(4);
+    ctx.fillText("CONFÉRENCE", 48, 96); ls(0);
+
+    var size, lines;
+    for (size = 46; size >= 24; size -= 2) {
+      ctx.font = "700 " + size + "px " + DISPLAY;
+      lines = wrap(evName, 504);
+      var ok = lines.length <= 2 && lines.every(function (l) { return ctx.measureText(l).width <= 504; });
+      if (ok) break;
+    }
+    lines = lines.slice(0, 2);
+    ctx.fillStyle = "#ffffff"; ctx.font = "700 " + size + "px " + DISPLAY;
+    lines.forEach(function (l, i) { ctx.fillText(l, 48, 148 + i * (size + 6)); });
+
+    var meta = [EVENT.date, EVENT.place].filter(Boolean).join("  ·  ");
+    if (meta) { ctx.fillStyle = "#9fc7bd"; ctx.fillText(fit(meta, 504, 18, 13, 500, BODY), 48, 240); }
+
+    ctx.fillStyle = "#11211f";
+    ctx.fillText(fit(d.prenom, 504, 64, 28, 700, DISPLAY), 48, 345);
+    ctx.fillStyle = "#0b6e5b"; ls(1);
+    ctx.fillText(fit((d.nom + " " + d.postnom).toUpperCase(), 504, 30, 16, 600, BODY), 48, 388); ls(0);
+    ctx.fillStyle = "#d5ddda"; ctx.fillRect(48, 414, 504, 1.5);
+
+    ctx.fillStyle = "#6b7c78"; ctx.font = "600 13px " + BODY; ls(2);
+    ctx.fillText("E-MAIL", 48, 448); ctx.fillText("TÉLÉPHONE", 48, 516); ls(0);
+    ctx.fillStyle = "#11211f";
+    ctx.fillText(fit(d.email, 504, 22, 13, 500, BODY), 48, 478);
+    ctx.fillText(fit(d.tel, 504, 22, 13, 500, BODY), 48, 546);
+
+    var qx = 48, qy = 586, box = 210;
+    ctx.fillStyle = "#ffffff"; rr(qx, qy, box, box, 10); ctx.fill();
+    ctx.strokeStyle = "#d5ddda"; ctx.lineWidth = 1.5; rr(qx, qy, box, box, 10); ctx.stroke();
+    try {
+      var payload = strip(d.id + "|" + d.nom + " " + d.postnom + " " + d.prenom + "|" + d.tel);
+      var qr = qrcode(0, "M"); qr.addData(payload); qr.make();
+      var n = qr.getModuleCount();
+      var cell = Math.max(2, Math.floor(186 / n));
+      var qs = cell * n, ox = qx + (box - qs) / 2, oy = qy + (box - qs) / 2;
+      ctx.fillStyle = "#0f2b28";
+      for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) {
+        if (qr.isDark(r, c)) ctx.fillRect(ox + c * cell, oy + r * cell, cell, cell);
+      }
+    } catch (e) { /* le badge reste lisible sans QR */ }
+
+    ctx.fillStyle = "#6b7c78"; ctx.font = "600 13px " + BODY; ls(2);
+    ctx.fillText("N° DE BADGE", 290, 630); ls(0);
+    ctx.fillStyle = "#0b6e5b";
+    ctx.fillText(fit(d.id, 262, 34, 18, 700, MONO), 290, 676);
+    ctx.fillStyle = "#586966"; ctx.font = "400 15px " + BODY;
+    ctx.fillText("Présentez ce code", 290, 724);
+    ctx.fillText("à l'entrée de la conférence.", 290, 746);
+
+    ctx.fillStyle = sample ? "#586966" : "#0b6e5b"; ctx.fillRect(0, H - 64, W, 64);
+    ctx.fillStyle = "#ffffff"; ctx.font = "700 16px " + BODY; ls(4); ctx.textAlign = "center";
+    ctx.fillText(sample ? "EXEMPLE · APERÇU" : "ACCÈS PARTICIPANT", W / 2, H - 26);
+    ctx.textAlign = "left"; ls(0);
+    ctx.restore();
+  }
+
+  var fontsReady = (function () {
+    if (!document.fonts || !document.fonts.load) return Promise.resolve();
+    var p = Promise.all([
+      document.fonts.load('700 40px "Space Grotesk"'),
+      document.fonts.load('600 20px "Inter"'),
+      document.fonts.load('700 20px "JetBrains Mono"')
+    ]).catch(function () {});
+    var t = new Promise(function (res) { setTimeout(res, 2500); });
+    return Promise.race([p, t]);
+  })();
+
+  function render() {
+    return fontsReady.then(function () {
+      var d = current || SAMPLE;
+      drawBadge(d, !current);
+      var img = $("badge-img");
+      img.src = canvas.toDataURL("image/png");
+      img.alt = current ? "Badge de " + d.prenom + " " + d.nom : "Aperçu du badge";
+    });
+  }
+
+  /* ---------- formulaire ---------- */
+  var fields = ["nom", "postnom", "prenom", "email", "tel"];
+  function setErr(id, msg) {
+    var p = $("err-" + id), input = $(id);
+    if (msg) { p.textContent = msg; p.hidden = false; input.setAttribute("aria-invalid", "true"); }
+    else { p.hidden = true; input.removeAttribute("aria-invalid"); }
+  }
+  function validate() {
+    var ok = true, first = null;
+    function bad(id, msg) { setErr(id, msg); if (ok) first = id; ok = false; }
+    var v = {};
+    fields.forEach(function (f) { v[f] = $(f).value.trim().replace(/\s+/g, " "); });
+    ["nom", "postnom", "prenom"].forEach(function (f) {
+      var label = { nom: "votre nom", postnom: "votre postnom", prenom: "votre prénom" }[f];
+      if (v[f].length < 2) bad(f, "Saisissez " + label + " (2 lettres minimum).");
+      else setErr(f, "");
+    });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.email)) bad("email", "Saisissez une adresse e-mail valide, par exemple nom@exemple.com.");
+    else setErr("email", "");
+    var digits = v.tel.replace(/\D/g, "");
+    if (!/^[+\d][\d\s().-]*$/.test(v.tel) || digits.length < 8 || digits.length > 15)
+      bad("tel", "Saisissez un numéro valide de 8 à 15 chiffres, par exemple +243 81 234 5678.");
+    else setErr("tel", "");
+    if (!ok && first) $(first).focus();
+    return ok ? v : null;
+  }
+
+  function orgMessage(code) {
+    return "Bonjour, voici mon inscription pour " + (EVENT.name || "la conférence") + " :\n" + code;
+  }
+
+  $("form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var v = validate();
+    if (!v) { $("status").textContent = ""; return; }
+    v.id = makeId(v.email.toLowerCase() + "|" + v.tel.replace(/\D/g, ""));
+    current = v;
+    render().then(function () {
+      $("caption").innerHTML = "Badge de <strong></strong>. Numéro : <span id=\"badge-id\"></span>. Maintenez le doigt appuyé sur l'image (ou clic droit) pour l'enregistrer.";
+      $("caption").querySelector("strong").textContent = v.prenom + " " + v.nom + " " + v.postnom;
+      $("badge-id").textContent = v.id;
+      $("actions").hidden = false;
+      $("btn-save").hidden = !dl;
+      $("btn-reset").hidden = false;
+      $("status").textContent = "Badge généré.";
+
+      var code = encodeCode(v);
+      $("code").value = code;
+      var phone = (ORGANIZER.whatsapp || "").replace(/\D/g, "");
+      $("btn-wa").hidden = !phone;
+      if (phone) $("btn-wa").href = "https://wa.me/" + phone + "?text=" + encodeURIComponent(orgMessage(code));
+      $("btn-mail").hidden = !ORGANIZER.email;
+      if (ORGANIZER.email) $("btn-mail").href = "mailto:" + ORGANIZER.email + "?subject=" + encodeURIComponent("Inscription · " + (EVENT.name || "Conférence")) + "&body=" + encodeURIComponent(orgMessage(code));
+      $("step").hidden = false;
+      $("badge-img").scrollIntoView({ block: "nearest" });
+    });
+  });
+
+  $("btn-reset").addEventListener("click", function () {
+    $("form").reset();
+    fields.forEach(function (f) { setErr(f, ""); });
+    current = null;
+    $("actions").hidden = true; $("btn-reset").hidden = true; $("step").hidden = true;
+    $("status").textContent = "";
+    $("caption").textContent = "Aperçu avec des données d'exemple.";
+    render();
+    $("nom").focus();
+  });
+
+  function copyText(text, done) {
+    function fallback(ta) { if (ta) { ta.focus(); ta.select(); } done("Sélectionnez le texte puis copiez-le."); }
+    try {
+      navigator.clipboard.writeText(text).then(function () { done("Copié."); }, function () { fallback(null); });
+    } catch (e) { fallback(null); }
+  }
+  $("btn-copy").addEventListener("click", function () {
+    if (current) copyText(current.id, function (m) { $("status").textContent = m; });
+  });
+  $("btn-copycode").addEventListener("click", function () {
+    var ta = $("code");
+    try {
+      navigator.clipboard.writeText(ta.value).then(function () { $("status").textContent = "Code copié. Envoyez-le à l'organisateur."; },
+        function () { ta.focus(); ta.select(); $("status").textContent = "Sélectionnez le code puis copiez-le."; });
+    } catch (e) { ta.focus(); ta.select(); $("status").textContent = "Sélectionnez le code puis copiez-le."; }
+  });
+
+  $("btn-save").addEventListener("click", function () {
+    if (!current || !dl) return;
+    canvas.toBlob(function (blob) {
+      if (!blob) { $("status").textContent = "Le badge n'a pas pu être préparé."; return; }
+      dl.save({ filename: "badge-" + current.id + ".png", data: blob }).then(function () {
+        $("status").textContent = "Badge enregistré.";
+      }, function (err) {
+        $("status").textContent = (err && err.code === "declined") ? "Enregistrement annulé." : "Enregistrement impossible ici. Maintenez le doigt appuyé sur l'image.";
+      });
+    }, "image/png");
+  });
+
+  try {
+    if (window.claude && window.claude.use) {
+      window.claude.use("downloads").then(function (d) { dl = d; if (current) $("btn-save").hidden = !dl; }, function () {});
+    }
+  } catch (e) {}
+
+  render();
+})();
+</script>
+
+</body></html>
