@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: badge
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ORGANIZER_WHATSAPP
+        sync: false
+      - key: ORGANIZER_EMAIL
+        sync: false

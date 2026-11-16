@@ -356,7 +356,7 @@
     v.id = makeId(v.email.toLowerCase() + "|" + v.tel.replace(/\D/g, ""));
     current = v;
     render().then(function () {
-      $("caption").innerHTML = "Badge de <strong></strong>. Numéro : <span id=\"badge-id\"></span>. Maintenez le doigt appuyé sur l'image (ou clic droit) pour l'enregistrer.";
+      $("caption").innerHTML = "Badge de <strong></strong>. Numéro : <span id=\"badge-id\"></span>. Utilisez « Enregistrer le badge » ou maintenez le doigt appuyé sur l'image.";
       $("caption").querySelector("strong").textContent = v.prenom + " " + v.nom + " " + v.postnom;
       $("badge-id").textContent = v.id;
       $("actions").hidden = false;
@@ -416,13 +416,25 @@
     }, "image/png");
   });
 
-  try {
-    if (window.claude && window.claude.use) {
-      window.claude.use("downloads").then(function (d) { dl = d; if (current) $("btn-save").hidden = !dl; }, function () {});
+  dl = {
+    save: function (o) {
+      return new Promise(function (resolve) {
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(o.data); a.download = o.filename;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+        resolve();
+      });
     }
-  } catch (e) {}
+  };
 
   render();
+  fetch("/api/public").then(function (r) { return r.json(); }).then(function (c) {
+    if (c.name) EVENT.name = c.name;
+    EVENT.date = c.date || ""; EVENT.place = c.place || "";
+    ORGANIZER.whatsapp = c.whatsapp || ""; ORGANIZER.email = c.email || "";
+    render();
+  }).catch(function () {});
 })();
 </script>
 

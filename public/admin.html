@@ -59,7 +59,7 @@
   @media (max-width: 520px) { .row2 { grid-template-columns: minmax(0, 1fr); } }
   .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   label { font-size: 13px; font-weight: 600; }
-  input[type="text"], input[type="search"], input[type="url"] {
+  input[type="text"], input[type="search"], input[type="url"], input[type="password"] {
     width: 100%; font: inherit; color: var(--fg); background: var(--bg);
     border: 1px solid var(--line); border-radius: 8px; padding: 11px 13px;
   }
@@ -116,6 +116,10 @@
   <div class="panel" id="gate">
     <h2>Chargement…</h2>
     <p class="hint" id="gate-msg">Vérification de votre accès.</p>
+    <form id="login" class="stack" hidden style="max-width:320px">
+      <div class="field"><label for="pw">Mot de passe organisateur</label><input id="pw" type="password" autocomplete="current-password"></div>
+      <div class="btns"><button type="submit" class="primary">Se connecter</button></div>
+    </form>
   </div>
 
   <div id="app" class="stack" hidden>
@@ -452,22 +456,88 @@
     }).catch(function () { fillCfgInputs(); });
   }
 
-  function useCap(name) {
-    try { return window.claude && window.claude.use ? window.claude.use(name).catch(function () { return null; }) : Promise.resolve(null); }
-    catch (e) { return Promise.resolve(null); }
-  }
-  function gate(title, msg) { $("gate").hidden = false; $("app").hidden = true; $("gate").querySelector("h2").textContent = title; $("gate-msg").textContent = msg; }
-
-  Promise.all([useCap("user"), useCap("db"), useCap("downloads")]).then(function (res) {
-    var user = res[0]; db = res[1]; dl = res[2];
-    return (user ? user.canEdit() : Promise.resolve(false)).then(function (admin) {
-      if (!db) { gate("Page réservée à l'organisateur", "Ouvrez cette page depuis votre compte Claude pour gérer les inscriptions."); return; }
-      if (!admin) { gate("Page réservée à l'organisateur", "Votre accès ne permet pas de gérer les inscriptions."); return; }
-      $("gate").hidden = true; $("app").hidden = false;
-      fillCfgInputs();
-      subscribe();
+  /* ---------- accès au serveur ---------- */
+  var TOKEN_KEY = "accr_token";
+  var refreshers = [];
+  function getToken() { try { return sessionStorage.getItem(TOKEN_KEY) || ""; } catch (e) { return ""; } }
+  function setToken(t) { try { if (t) sessionStorage.setItem(TOKEN_KEY, t); else sessionStorage.removeItem(TOKEN_KEY); } catch (e) {} }
+  function api(method, url, body) {
+    var h = { "Authorization": "Bearer " + getToken() };
+    if (body !== undefined) h["Content-Type"] = "application/json";
+    return fetch(url, { method: method, headers: h, body: body === undefined ? undefined : JSON.stringify(body) }).then(function (r) {
+      if (r.status === 401) { setToken(""); showLogin(); throw new Error("auth"); }
+      if (!r.ok) throw new Error("http " + r.status);
+      return r.status === 204 ? null : r.json();
     });
+  }
+  function refreshAll() { refreshers.forEach(function (f) { f(); }); }
+  function makeDb() {
+    return {
+      doc: function (p) {
+        var parts = p.split("/"), c = parts[0], id = encodeURIComponent(parts[1]), u = "/api/" + c + "/" + id;
+        return {
+          set: function (d) { return api("PUT", u, d).then(function (x) { refreshAll(); return x; }); },
+          delete: function () { return api("DELETE", u).then(function (x) { refreshAll(); return x; }); },
+          get: function () { return api("GET", u).then(function (d) { return { exists: !!d, data: function () { return d; } }; }); }
+        };
+      },
+      collection: function (c) {
+        return {
+          onSnapshot: function (ok, fail) {
+            var first = true;
+            function tick() {
+              api("GET", "/api/" + c).then(function (rows) {
+                first = false;
+                ok({ docs: rows.map(function (r) { return { id: r.id, data: function () { return r.data; } }; }) });
+              }).catch(function () { if (first && fail) { first = false; fail(); } });
+            }
+            refreshers.push(tick); tick(); setInterval(tick, 4000);
+          }
+        };
+      }
+    };
+  }
+  dl = {
+    save: function (o) {
+      return new Promise(function (resolve) {
+        var blob = o.data instanceof Blob ? o.data : new Blob([o.data], { type: "text/csv;charset=utf-8" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob); a.download = o.filename;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+        resolve();
+      });
+    }
+  };
+
+  var started = false;
+  function showLogin(msg) {
+    $("app").hidden = true; $("gate").hidden = false;
+    $("gate").querySelector("h2").textContent = "Accès organisateur";
+    $("gate-msg").textContent = msg || "Saisissez le mot de passe pour gérer les inscriptions.";
+    $("login").hidden = false;
+  }
+  function openApp() {
+    $("gate").hidden = true; $("app").hidden = false;
+    if (started) return;
+    started = true; db = makeDb();
+    fillCfgInputs(); subscribe();
+  }
+  $("login").addEventListener("submit", function (e) {
+    e.preventDefault();
+    fetch("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: $("pw").value }) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, j: j }; }); })
+      .then(function (res) {
+        if (res.ok && res.j.token) { setToken(res.j.token); $("pw").value = ""; openApp(); }
+        else showLogin(res.status === 429 ? "Trop d'essais. Patientez une minute." : "Mot de passe incorrect.");
+      }, function () { showLogin("Le serveur ne répond pas. Réessayez dans un instant."); });
   });
+
+  if (getToken()) {
+    fetch("/api/inscriptions", { headers: { "Authorization": "Bearer " + getToken() } }).then(function (r) {
+      if (r.ok) openApp(); else { setToken(""); showLogin(); }
+    }, function () { showLogin("Le serveur ne répond pas. Réessayez dans un instant."); });
+  } else showLogin();
 })();
 </script>
 
