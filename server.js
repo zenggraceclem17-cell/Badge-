@@ -75,11 +75,40 @@ app.post("/api/login", loginLimiter, (req, res) => {
 /* Informations publiques pour la page invité */
 app.get("/api/public", (req, res) => {
   const c = db.config.event || {};
-  res.json({
-    name: c.name || "", date: c.date || "", place: c.place || "",
-    whatsapp: (process.env.ORGANIZER_WHATSAPP || "").replace(/\D/g, ""),
-    email: process.env.ORGANIZER_EMAIL || ""
-  });
+  res.json({ name: c.name || "", date: c.date || "", place: c.place || "" });
+});
+
+/* Inscription d'un invité (publique) */
+function makeId(seed) {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+  h = h >>> 0;
+  const alpha = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let s = "";
+  for (let j = 0; j < 6; j++) { s += alpha[h % 32]; h = Math.floor(h / 32); }
+  return "BDG-" + s.slice(0, 3) + "-" + s.slice(3);
+}
+const regAttempts = new Map();
+app.post("/api/register", (req, res) => {
+  const now = Date.now(), ip = req.ip;
+  const list = (regAttempts.get(ip) || []).filter((t) => now - t < 60000);
+  if (list.length >= 20) return res.status(429).json({ error: "too_many" });
+  list.push(now); regAttempts.set(ip, list);
+  const b = req.body || {};
+  const clean = (v) => (typeof v === "string" ? v.trim().replace(/\s+/g, " ") : "");
+  const r = { nom: clean(b.nom), postnom: clean(b.postnom), prenom: clean(b.prenom), email: clean(b.email), tel: clean(b.tel) };
+  const ok = ["nom", "postnom", "prenom"].every((k) => r[k].length >= 2 && r[k].length < 80) &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(r.email) && r.email.length < 120 &&
+    r.tel.length < 40 && r.tel.replace(/\D/g, "").length >= 8 && r.tel.replace(/\D/g, "").length <= 15;
+  if (!ok) return res.status(400).json({ error: "invalid" });
+  const badge = makeId(r.email.toLowerCase() + "|" + r.tel.replace(/\D/g, ""));
+  if (b.badge !== badge) return res.status(400).json({ error: "invalid" });
+  if (Object.keys(db.inscriptions).length >= 10000) return res.status(507).json({ error: "full" });
+  if (!db.inscriptions[badge]) {
+    db.inscriptions[badge] = Object.assign({}, r, { badge, createdAt: new Date().toISOString() });
+    save();
+  }
+  res.json({ ok: true });
 });
 
 /* Données organisateur */

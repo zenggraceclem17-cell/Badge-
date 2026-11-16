@@ -85,9 +85,6 @@
   #badge-id { font-family: var(--mono); font-weight: 700; color: var(--accent); }
   .status { min-height: 20px; margin: 0; font-size: 13px; color: var(--accent); font-weight: 600; }
 
-  .step { background: var(--surface); border: 1px solid var(--warm); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-  .step h3 { margin: 0; font-family: var(--display); font-size: 16px; color: var(--warm); }
-  .step p { margin: 0; font-size: 14px; }
   textarea { width: 100%; font-family: var(--mono); font-size: 12px; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; min-height: 96px; resize: vertical; }
   @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 </style>
@@ -147,17 +144,6 @@
         <button type="button" id="btn-save" hidden>Enregistrer le badge (PNG)</button>
         <button type="button" id="btn-copy">Copier le numéro</button>
       </div>
-
-      <div class="step" id="step" hidden>
-        <h3>Dernière étape : confirmez votre inscription</h3>
-        <p>Envoyez le code ci-dessous à l'organisateur. Sans lui, votre badge ne sera pas reconnu à l'entrée.</p>
-        <textarea id="code" readonly aria-label="Votre code d'inscription"></textarea>
-        <div class="btns">
-          <button type="button" class="primary sm" id="btn-copycode">Copier le code</button>
-          <a class="btn sm" id="btn-wa" href="#" target="_blank" rel="noopener" hidden>Envoyer par WhatsApp</a>
-          <a class="btn sm" id="btn-mail" href="#" target="_blank" rel="noopener" hidden>Envoyer par e-mail</a>
-        </div>
-      </div>
     </aside>
   </div>
 </div>
@@ -166,7 +152,6 @@
 (function () {
   /* ---- À renseigner par l'organisateur (republier la page pour modifier) ---- */
   var EVENT = { name: "Conférence 2026", date: "", place: "" };
-  var ORGANIZER = { whatsapp: "", email: "" };  // whatsapp : numéro international sans +, ex. "243812345678"
 
   var $ = function (id) { return document.getElementById(id); };
   var canvas = document.createElement("canvas");
@@ -189,11 +174,6 @@
     var alpha = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", s = "";
     for (var j = 0; j < 6; j++) { s += alpha[h % 32]; h = Math.floor(h / 32); }
     return "BDG-" + s.slice(0, 3) + "-" + s.slice(3);
-  }
-  function encodeCode(v) {
-    var j = JSON.stringify({ n: v.nom, p: v.postnom, r: v.prenom, e: v.email, t: v.tel, i: v.id });
-    var b = btoa(unescape(encodeURIComponent(j))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-    return "INS1." + b;
   }
   function ls(px) { if ("letterSpacing" in ctx) ctx.letterSpacing = px + "px"; }
   function rr(x, y, w, h, r) {
@@ -345,10 +325,6 @@
     return ok ? v : null;
   }
 
-  function orgMessage(code) {
-    return "Bonjour, voici mon inscription pour " + (EVENT.name || "la conférence") + " :\n" + code;
-  }
-
   $("form").addEventListener("submit", function (e) {
     e.preventDefault();
     var v = validate();
@@ -364,14 +340,10 @@
       $("btn-reset").hidden = false;
       $("status").textContent = "Badge généré.";
 
-      var code = encodeCode(v);
-      $("code").value = code;
-      var phone = (ORGANIZER.whatsapp || "").replace(/\D/g, "");
-      $("btn-wa").hidden = !phone;
-      if (phone) $("btn-wa").href = "https://wa.me/" + phone + "?text=" + encodeURIComponent(orgMessage(code));
-      $("btn-mail").hidden = !ORGANIZER.email;
-      if (ORGANIZER.email) $("btn-mail").href = "mailto:" + ORGANIZER.email + "?subject=" + encodeURIComponent("Inscription · " + (EVENT.name || "Conférence")) + "&body=" + encodeURIComponent(orgMessage(code));
-      $("step").hidden = false;
+      fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nom: v.nom, postnom: v.postnom, prenom: v.prenom, email: v.email, tel: v.tel, badge: v.id }) })
+        .then(function (r) { $("status").textContent = r.ok ? "Badge généré. Votre inscription est enregistrée." : "Badge généré, mais l'inscription n'a pas pu être enregistrée. Réessayez."; },
+              function () { $("status").textContent = "Badge généré, mais l'inscription n'a pas pu être enregistrée. Vérifiez votre connexion et réessayez."; });
       $("badge-img").scrollIntoView({ block: "nearest" });
     });
   });
@@ -380,7 +352,7 @@
     $("form").reset();
     fields.forEach(function (f) { setErr(f, ""); });
     current = null;
-    $("actions").hidden = true; $("btn-reset").hidden = true; $("step").hidden = true;
+    $("actions").hidden = true; $("btn-reset").hidden = true;
     $("status").textContent = "";
     $("caption").textContent = "Aperçu avec des données d'exemple.";
     render();
@@ -396,14 +368,6 @@
   $("btn-copy").addEventListener("click", function () {
     if (current) copyText(current.id, function (m) { $("status").textContent = m; });
   });
-  $("btn-copycode").addEventListener("click", function () {
-    var ta = $("code");
-    try {
-      navigator.clipboard.writeText(ta.value).then(function () { $("status").textContent = "Code copié. Envoyez-le à l'organisateur."; },
-        function () { ta.focus(); ta.select(); $("status").textContent = "Sélectionnez le code puis copiez-le."; });
-    } catch (e) { ta.focus(); ta.select(); $("status").textContent = "Sélectionnez le code puis copiez-le."; }
-  });
-
   $("btn-save").addEventListener("click", function () {
     if (!current || !dl) return;
     canvas.toBlob(function (blob) {
@@ -432,7 +396,6 @@
   fetch("/api/public").then(function (r) { return r.json(); }).then(function (c) {
     if (c.name) EVENT.name = c.name;
     EVENT.date = c.date || ""; EVENT.place = c.place || "";
-    ORGANIZER.whatsapp = c.whatsapp || ""; ORGANIZER.email = c.email || "";
     render();
   }).catch(function () {});
 })();
