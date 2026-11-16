@@ -5,17 +5,15 @@ const fs = require("fs");
 const path = require("path");
 
 const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
+const INITIAL_PASSWORD = process.env.ADMIN_PASSWORD || "0000";
+const RESET_CODE = process.env.RESET_CODE || "0000";
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
 const DB_FILE = path.join(DATA_DIR, "db.json");
 const COLLECTIONS = ["inscriptions", "presences", "envois", "config"];
 
-if (!ADMIN_PASSWORD) {
-  console.warn("ADMIN_PASSWORD n'est pas défini : la connexion organisateur est désactivée.");
-}
 
 /* ---------- stockage (fichier JSON) ---------- */
-let db = { inscriptions: {}, presences: {}, envois: {}, config: {} };
+let db = { inscriptions: {}, presences: {}, envois: {}, config: {}, admin: null };
 try {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   if (fs.existsSync(DB_FILE)) db = Object.assign(db, JSON.parse(fs.readFileSync(DB_FILE, "utf8")));
@@ -39,17 +37,29 @@ function save() {
 }
 
 /* ---------- authentification ---------- */
-function adminToken() {
-  return crypto.createHmac("sha256", ADMIN_PASSWORD).update("badge-admin-v1").digest("hex");
-}
+function hashPw(pw, salt) { return crypto.scryptSync(pw, salt, 32).toString("hex"); }
 function safeEqual(a, b) {
   const x = Buffer.from(String(a)), y = Buffer.from(String(b));
   return x.length === y.length && crypto.timingSafeEqual(x, y);
 }
+function checkPassword(pw) {
+  if (typeof pw !== "string" || !pw || pw.length > 200) return false;
+  if (db.admin) return safeEqual(hashPw(pw, db.admin.salt), db.admin.hash);
+  return safeEqual(pw, INITIAL_PASSWORD);
+}
+function setPassword(pw) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  db.admin = { salt, hash: hashPw(pw, salt) };
+  save();
+}
+function adminToken() {
+  const secret = db.admin ? db.admin.hash : "init:" + INITIAL_PASSWORD;
+  return crypto.createHmac("sha256", secret).update("badge-admin-v1").digest("hex");
+}
 function requireAdmin(req, res, next) {
   const h = req.get("authorization") || "";
   const t = h.startsWith("Bearer ") ? h.slice(7) : "";
-  if (ADMIN_PASSWORD && t && safeEqual(t, adminToken())) return next();
+  if (t && safeEqual(t, adminToken())) return next();
   res.status(401).json({ error: "unauthorized" });
 }
 const attempts = new Map();
@@ -68,8 +78,18 @@ app.use(express.json({ limit: "20kb" }));
 
 app.post("/api/login", loginLimiter, (req, res) => {
   const pw = (req.body && req.body.password) || "";
-  if (ADMIN_PASSWORD && typeof pw === "string" && safeEqual(pw, ADMIN_PASSWORD)) return res.json({ token: adminToken() });
+  if (checkPassword(pw)) return res.json({ token: adminToken() });
   res.status(401).json({ error: "bad_password" });
+});
+
+/* Mot de passe oublié : le code de réinitialisation permet d'en définir un nouveau (vide = 0000) */
+app.post("/api/reset-password", loginLimiter, (req, res) => {
+  const b = req.body || {};
+  if (typeof b.code !== "string" || !safeEqual(b.code.trim(), RESET_CODE)) return res.status(401).json({ error: "bad_code" });
+  const pw = typeof b.password === "string" && b.password ? b.password : "0000";
+  if (pw.length < 4 || pw.length > 100) return res.status(400).json({ error: "bad_password_format" });
+  setPassword(pw);
+  res.json({ token: adminToken() });
 });
 
 /* Informations publiques pour la page invité */

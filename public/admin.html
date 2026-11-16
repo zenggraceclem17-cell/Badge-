@@ -118,7 +118,13 @@
     <p class="hint" id="gate-msg">Vérification de votre accès.</p>
     <form id="login" class="stack" hidden style="max-width:320px">
       <div class="field"><label for="pw">Mot de passe organisateur</label><input id="pw" type="password" autocomplete="current-password"></div>
-      <div class="btns"><button type="submit" class="primary">Se connecter</button></div>
+      <div class="btns"><button type="submit" class="primary">Se connecter</button><button type="button" id="btn-forgot">Mot de passe oublié ?</button></div>
+    </form>
+    <form id="reset" class="stack" hidden style="max-width:320px">
+      <p class="hint" style="margin:0">Saisissez le code de réinitialisation. Vous pouvez choisir un nouveau mot de passe, ou le laisser vide pour revenir au mot de passe par défaut.</p>
+      <div class="field"><label for="rcode">Code de réinitialisation</label><input id="rcode" type="password" autocomplete="off" inputmode="numeric"></div>
+      <div class="field"><label for="rpw">Nouveau mot de passe (facultatif)</label><input id="rpw" type="password" autocomplete="new-password"></div>
+      <div class="btns"><button type="submit" class="primary">Réinitialiser</button><button type="button" id="btn-back">Retour</button></div>
     </form>
   </div>
 
@@ -515,7 +521,7 @@
     $("app").hidden = true; $("gate").hidden = false;
     $("gate").querySelector("h2").textContent = "Accès organisateur";
     $("gate-msg").textContent = msg || "Saisissez le mot de passe pour gérer les inscriptions.";
-    $("login").hidden = false;
+    $("login").hidden = false; $("reset").hidden = true;
   }
   function openApp() {
     $("gate").hidden = true; $("app").hidden = false;
@@ -531,6 +537,24 @@
         if (res.ok && res.j.token) { setToken(res.j.token); $("pw").value = ""; openApp(); }
         else showLogin(res.status === 429 ? "Trop d'essais. Patientez une minute." : "Mot de passe incorrect.");
       }, function () { showLogin("Le serveur ne répond pas. Réessayez dans un instant."); });
+  });
+
+  $("btn-forgot").addEventListener("click", function () {
+    $("login").hidden = true; $("reset").hidden = false;
+    $("gate-msg").textContent = "Réinitialisation du mot de passe."; $("rcode").focus();
+  });
+  $("btn-back").addEventListener("click", function () { showLogin(); });
+  $("reset").addEventListener("submit", function (e) {
+    e.preventDefault();
+    fetch("/api/reset-password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: $("rcode").value, password: $("rpw").value }) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, j: j }; }); })
+      .then(function (res) {
+        if (res.ok && res.j.token) { setToken(res.j.token); $("rcode").value = ""; $("rpw").value = ""; openApp(); return; }
+        var m = res.status === 429 ? "Trop d'essais. Patientez une minute."
+          : res.j && res.j.error === "bad_password_format" ? "Le mot de passe doit avoir de 4 à 100 caractères."
+          : "Code de réinitialisation incorrect.";
+        $("gate-msg").textContent = m;
+      }, function () { $("gate-msg").textContent = "Le serveur ne répond pas. Réessayez dans un instant."; });
   });
 
   if (getToken()) {
