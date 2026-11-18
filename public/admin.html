@@ -129,6 +129,7 @@
   </div>
 
   <div id="app" class="stack" hidden>
+    <div class="banner bad" id="persist-warn" role="alert" hidden>Stockage temporaire : les inscriptions seront effacées au prochain redémarrage du serveur. Connectez une base de données (variable DATABASE_URL sur Render).</div>
     <div class="stats" aria-live="polite">
       <div class="stat"><b id="st-reg">0</b><span>Inscrits</span></div>
       <div class="stat"><b id="st-pres">0</b><span>Entrés</span></div>
@@ -528,6 +529,7 @@
     if (started) return;
     started = true; db = makeDb();
     fillCfgInputs(); subscribe();
+    api("GET", "/api/status").then(function (s) { $("persist-warn").hidden = !!s.persistent; }).catch(function () {});
   }
   $("login").addEventListener("submit", function (e) {
     e.preventDefault();

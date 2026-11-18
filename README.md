@@ -9,6 +9,6 @@
 |---|---|
 | `ADMIN_PASSWORD` | Mot de passe initial de `/admin` (défaut `0000`) |
 | `RESET_CODE` | Code du bouton « Mot de passe oublié » (défaut `0000`). **À changer : tant qu'il vaut `0000`, tout le monde peut prendre la main sur `/admin`.** |
-| `DATA_DIR` | Dossier de la base (défaut `./data`). Pour garder les données après un redémarrage, ajoutez un Disk Render et pointez `DATA_DIR` dessus (ex. `/var/data`). |
+| `DATABASE_URL` | Adresse d'une base PostgreSQL (Neon, Supabase…). **Obligatoire pour ne pas perdre les inscriptions** : sans elle, les données sont effacées à chaque redémarrage de Render. |
 
-Sans Disk, les données sont perdues à chaque redéploiement ou redémarrage du plan gratuit.
+Sans `DATABASE_URL`, la page organisateur affiche un avertissement rouge.

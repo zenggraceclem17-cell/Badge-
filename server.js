@@ -12,15 +12,16 @@ const DB_FILE = path.join(DATA_DIR, "db.json");
 const COLLECTIONS = ["inscriptions", "presences", "envois", "config"];
 
 
-/* ---------- stockage (fichier JSON) ---------- */
+/* ---------- stockage ----------
+   Avec DATABASE_URL : base PostgreSQL (les données survivent aux redémarrages).
+   Sans : fichier JSON local (effacé à chaque redémarrage sur le plan gratuit de Render). */
+const DATABASE_URL = process.env.DATABASE_URL || "";
+const PERSISTENT = !!DATABASE_URL;
 let db = { inscriptions: {}, presences: {}, envois: {}, config: {}, admin: null };
-try {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (fs.existsSync(DB_FILE)) db = Object.assign(db, JSON.parse(fs.readFileSync(DB_FILE, "utf8")));
-} catch (e) { console.error("Lecture de la base impossible :", e.message); }
+let pool = null;
 
 let saving = false, dirty = false;
-function save() {
+function saveFile() {
   dirty = true;
   if (saving) return;
   saving = true;
@@ -29,11 +30,43 @@ function save() {
     dirty = false;
     const tmp = DB_FILE + ".tmp";
     fs.writeFile(tmp, JSON.stringify(db), (err) => {
-      if (err) console.error("Écriture impossible :", err.message);
+      if (err) { console.error("Écriture impossible :", err.message); loop(); }
       else fs.rename(tmp, DB_FILE, () => loop());
-      if (err) loop();
     });
   })();
+}
+function dbError(e) { console.error("Base de données :", e.message); }
+function persistSet(col, id, data) {
+  if (pool) pool.query("INSERT INTO kv (col, id, data) VALUES ($1, $2, $3) ON CONFLICT (col, id) DO UPDATE SET data = EXCLUDED.data", [col, id, JSON.stringify(data)]).catch(dbError);
+  else saveFile();
+}
+function persistDel(col, id) {
+  if (pool) pool.query("DELETE FROM kv WHERE col = $1 AND id = $2", [col, id]).catch(dbError);
+  else saveFile();
+}
+
+async function initStorage() {
+  if (PERSISTENT) {
+    const { Pool } = require("pg");
+    pool = new Pool({
+      connectionString: DATABASE_URL,
+      ssl: /localhost|127\.0\.0\.1/.test(DATABASE_URL) ? false : { rejectUnauthorized: false },
+      max: 4
+    });
+    await pool.query("CREATE TABLE IF NOT EXISTS kv (col text NOT NULL, id text NOT NULL, data jsonb NOT NULL, PRIMARY KEY (col, id))");
+    const r = await pool.query("SELECT col, id, data FROM kv");
+    r.rows.forEach((row) => {
+      if (row.col === "admin") db.admin = row.data;
+      else if (db[row.col]) db[row.col][row.id] = row.data;
+    });
+    console.log("Stockage : PostgreSQL, " + Object.keys(db.inscriptions).length + " inscription(s) chargée(s).");
+  } else {
+    try {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+      if (fs.existsSync(DB_FILE)) db = Object.assign(db, JSON.parse(fs.readFileSync(DB_FILE, "utf8")));
+    } catch (e) { console.error("Lecture de la base impossible :", e.message); }
+    console.warn("Stockage : fichier local. Les données seront perdues au redémarrage. Définissez DATABASE_URL.");
+  }
 }
 
 /* ---------- authentification ---------- */
@@ -50,7 +83,7 @@ function checkPassword(pw) {
 function setPassword(pw) {
   const salt = crypto.randomBytes(16).toString("hex");
   db.admin = { salt, hash: hashPw(pw, salt) };
-  save();
+  persistSet("admin", "main", db.admin);
 }
 function adminToken() {
   const secret = db.admin ? db.admin.hash : "init:" + INITIAL_PASSWORD;
@@ -126,12 +159,13 @@ app.post("/api/register", (req, res) => {
   if (Object.keys(db.inscriptions).length >= 10000) return res.status(507).json({ error: "full" });
   if (!db.inscriptions[badge]) {
     db.inscriptions[badge] = Object.assign({}, r, { badge, createdAt: new Date().toISOString() });
-    save();
+    persistSet("inscriptions", badge, db.inscriptions[badge]);
   }
   res.json({ ok: true });
 });
 
 /* Données organisateur */
+app.get("/api/status", requireAdmin, (req, res) => res.json({ persistent: PERSISTENT }));
 const ID_RE = /^[A-Za-z0-9_-]{1,40}$/;
 function col(req, res, next) {
   if (!COLLECTIONS.includes(req.params.col) || (req.params.id && !ID_RE.test(req.params.id))) return res.status(404).json({ error: "not_found" });
@@ -152,12 +186,12 @@ app.put("/api/:col/:id", requireAdmin, col, (req, res) => {
     if (!ok || b.badge !== req.params.id) return res.status(400).json({ error: "bad_inscription" });
   }
   db[req.params.col][req.params.id] = b;
-  save();
+  persistSet(req.params.col, req.params.id, b);
   res.json({ ok: true });
 });
 app.delete("/api/:col/:id", requireAdmin, col, (req, res) => {
   delete db[req.params.col][req.params.id];
-  save();
+  persistDel(req.params.col, req.params.id);
   res.status(204).end();
 });
 
@@ -167,4 +201,6 @@ app.get("/", (req, res) => res.sendFile(path.join(pub, "index.html")));
 app.get("/admin", (req, res) => res.sendFile(path.join(pub, "admin.html")));
 app.get("/healthz", (req, res) => res.send("ok"));
 
-app.listen(PORT, () => console.log("Serveur démarré sur le port " + PORT));
+initStorage().then(() => {
+  app.listen(PORT, () => console.log("Serveur démarré sur le port " + PORT));
+}, (e) => { console.error("Démarrage impossible, base inaccessible :", e.message); process.exit(1); });
